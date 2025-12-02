@@ -61,13 +61,12 @@ Try asking me in natural language!`
                 const data = await res.json();
 
                 // Format the response nicely
-                let formatted = "Here are your last 5 emails:\n\n";
+                let formatted = "Here's what you have:\n\n";
                 if (Array.isArray(data)) {
                     data.forEach((email, idx) => {
-                        formatted += `📩 Email ${idx + 1}\n`;
-                        formatted += `From: ${email.sender || 'Unknown'}\n`;
-                        formatted += `Subject: ${email.subject || 'No subject'}\n`;
-                        formatted += `Summary: ${email.summary || 'No summary available'}\n\n`;
+                        formatted += `${idx + 1}. ${email.sender || 'Unknown'}\n`;
+                        formatted += `   ${email.subject || 'No subject'}\n`;
+                        formatted += `   ${email.summary || 'No summary'}\n\n`;
                     });
                 } else {
                     formatted = JSON.stringify(data, null, 2);
