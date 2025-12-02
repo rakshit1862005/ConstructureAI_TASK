@@ -237,9 +237,15 @@ async def google_callback(code: str, response: Response):
 
     # Keep path same as your Next.js dashboard route
     resp = RedirectResponse(f"{FRONTEND_URL}/pages/dashboard")
-    resp.set_cookie("session_id", session_id, httponly=True, samesite="Lax")
-
+    resp.set_cookie(
+        key="session_id",
+        value=session_id,
+        httponly=True,
+        secure=True,
+        samesite="None"
+    )
     return resp
+
 
 
 def get_session(request: Request):
@@ -379,17 +385,25 @@ async def delete_email(data: dict, session=Depends(get_session)):
     headers = {"Authorization": f"Bearer {session['access_token']}"}
 
     async with httpx.AsyncClient() as client:
-        delete_res = await client.delete(
-            f"https://gmail.googleapis.com/gmail/v1/users/me/messages/{mid}",
-            headers=headers,
+        trash_res = await client.post(
+            f"https://gmail.googleapis.com/gmail/v1/users/me/messages/{mid}/trash",
+            headers=headers
         )
 
-    if delete_res.status_code not in [200, 204]:
-        print("Gmail delete error:", delete_res.text)
-        return {"status": "Delete failed"}
+    if trash_res.status_code not in [200]:
+        print("Gmail TRASH error:", trash_res.text)
+        return {"status": "Trash failed"}
 
-    return {"status": f"Deleted email {idx}"}
+    return {"status": f"Moved email {idx} to Trash"}
+
+@app.get("/auth/logout")
+def logout(response: Response):
+    response = RedirectResponse(url=FRONTEND_URL)
+    response.delete_cookie("session_id")
+    return response
 
 
-if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+
+
+
+
