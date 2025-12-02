@@ -230,8 +230,13 @@ Try asking me in natural language!`
                                 onKeyPress={handleKeyPress}
                                 placeholder="Type a command or ask me anything..."
                                 disabled={loading}
-                                className="flex-1 px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                className="flex-1 px-4 py-3 rounded-xl border border-gray-300
+               text-gray-900 placeholder-gray-500
+               focus:outline-none focus:ring-2 focus:ring-indigo-500
+               focus:border-transparent disabled:bg-gray-100
+               disabled:cursor-not-allowed"
                             />
+
                             <button
                                 onClick={handleSend}
                                 disabled={loading || !input.trim()}
