@@ -151,78 +151,76 @@ export default function Page() {
 
     return (
         <div className="min-h-screen bg-gray-950 flex flex-col">
-            {/* Simple header */}
-            <div className="border-b border-gray-800 px-6 py-4 flex items-center justify-between">
+            {/* Header */}
+            <div className="border-b border-gray-800 px-6 py-4 flex items-center justify-between bg-gray-900">
                 <div>
                     <h1 className="text-xl font-semibold text-white">Email Assistant</h1>
                     <p className="text-sm text-gray-400">{user.name}</p>
                 </div>
                 <button
                     onClick={() => window.location.href = `${BACKEND_URL}/auth/logout`}
-                    className="text-sm text-gray-400 hover:text-white transition-colors"
+                    className="text-sm text-gray-400 hover:text-white transition-colors px-4 py-2 rounded hover:bg-gray-800"
                 >
                     Logout
                 </button>
             </div>
 
-            {/* Chat area */}
-            <div className="flex-1 overflow-hidden flex flex-col max-w-4xl w-full mx-auto">
-                <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
-                    {messages.map((msg, i) => (
-                        <div key={i} className="flex gap-3">
-                            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                                msg.author === "user"
-                                    ? "bg-gray-100 text-gray-900"
-                                    : "bg-gray-800 text-gray-300"
-                            }`}>
-                                {msg.author === "user" ? "Y" : "A"}
-                            </div>
-                            <div className="flex-1 pt-1">
-                                <div className="text-sm font-medium text-gray-300 mb-1">
-                                    {msg.author === "user" ? "You" : "Assistant"}
-                                </div>
-                                <div className="text-gray-400 whitespace-pre-wrap break-words leading-relaxed">
-                                    {msg.text}
+            {/* Chat container */}
+            <div className="flex-1 overflow-hidden flex flex-col max-w-5xl w-full mx-auto">
+                {/* Messages */}
+                <div className="flex-1 overflow-y-auto px-6 py-8">
+                    <div className="space-y-4 max-w-3xl mx-auto">
+                        {messages.map((msg, i) => (
+                            <div key={i} className={`flex ${msg.author === "user" ? "justify-end" : "justify-start"}`}>
+                                <div className={`max-w-[75%] rounded-lg px-4 py-3 ${
+                                    msg.author === "user"
+                                        ? "bg-blue-600 text-white"
+                                        : "bg-gray-800 text-gray-100 border border-gray-700"
+                                }`}>
+                                    <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+                                        {msg.text}
+                                    </p>
                                 </div>
                             </div>
-                        </div>
-                    ))}
-                    {loading && (
-                        <div className="flex gap-3">
-                            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-sm font-medium text-gray-300">
-                                A
-                            </div>
-                            <div className="flex-1 pt-1">
-                                <div className="text-sm font-medium text-gray-300 mb-1">Assistant</div>
-                                <div className="flex gap-1">
-                                    <span className="w-2 h-2 bg-gray-600 rounded-full animate-bounce"></span>
-                                    <span className="w-2 h-2 bg-gray-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></span>
-                                    <span className="w-2 h-2 bg-gray-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
+                        ))}
+                        {loading && (
+                            <div className="flex justify-start">
+                                <div className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-3">
+                                    <div className="flex gap-1.5">
+                                        <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></span>
+                                        <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></span>
+                                        <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    )}
-                    <div ref={messagesEndRef} />
+                        )}
+                        <div ref={messagesEndRef} />
+                    </div>
                 </div>
 
-                {/* Input */}
-                <div className="border-t border-gray-800 px-6 py-4">
-                    <div className="flex gap-3">
-                        <input
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            onKeyPress={handleKeyPress}
-                            placeholder="Type a command..."
-                            disabled={loading}
-                            className="flex-1 px-4 py-3 bg-gray-900 border border-gray-800 text-white placeholder-gray-500 rounded-lg focus:outline-none focus:border-gray-700 disabled:bg-gray-900 disabled:opacity-50"
-                        />
-                        <button
-                            onClick={handleSend}
-                            disabled={loading || !input.trim()}
-                            className="bg-gray-100 text-gray-900 px-6 py-3 rounded-lg hover:bg-white disabled:bg-gray-800 disabled:text-gray-600 transition-colors font-medium"
-                        >
-                            Send
-                        </button>
+                {/* Input area */}
+                <div className="border-t border-gray-800 bg-gray-900 px-6 py-4">
+                    <div className="max-w-3xl mx-auto">
+                        <div className="flex gap-3">
+                            <input
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                onKeyPress={handleKeyPress}
+                                placeholder="Type a command..."
+                                disabled={loading}
+                                className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-lg focus:outline-none focus:border-gray-600 focus:ring-1 focus:ring-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                            />
+                            <button
+                                onClick={handleSend}
+                                disabled={loading || !input.trim()}
+                                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors font-medium"
+                            >
+                                Send
+                            </button>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2 text-center">
+                            Try: "read emails" • "reply 1" • "delete 2"
+                        </p>
                     </div>
                 </div>
             </div>
