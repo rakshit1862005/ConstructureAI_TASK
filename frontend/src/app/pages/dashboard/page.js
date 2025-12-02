@@ -33,7 +33,7 @@ export default function Page() {
                 setMessages([
                     {
                         author: "bot",
-                        text: `Hi ${data.name}! 👋 I'm your AI email assistant. Here's what I can help you with:
+                        text: `Hi ${data.name}! I'm your AI email assistant. Here's what I can help you with:
 
 • "read emails" or "show last 5" - View your recent emails with AI summaries
 • "reply 1" - Generate and send an AI response to email #1
@@ -83,7 +83,7 @@ Try asking me in natural language!`
 
             if (userText.toLowerCase().startsWith("reply")) {
                 const index = parseInt(userText.split(" ")[1]);
-                setMessages((m) => [...m, { author: "bot", text: `✍️ Generating reply for email #${index}...` }]);
+                setMessages((m) => [...m, { author: "bot", text: ` Generating reply for email #${index}...` }]);
 
                 const res = await fetch(`${BACKEND_URL}/emails/reply`, {
                     method: "POST",
@@ -97,7 +97,7 @@ Try asking me in natural language!`
                     const newMessages = [...m];
                     newMessages[newMessages.length - 1] = {
                         author: "bot",
-                        text: `✅ Reply generated:\n\n${data.reply}\n\nWould you like to send this?`
+                        text: `Reply generated:\n\n${data.reply}\n\nWould you like to send this?`
                     };
                     return newMessages;
                 });
@@ -121,7 +121,7 @@ Try asking me in natural language!`
                     const newMessages = [...m];
                     newMessages[newMessages.length - 1] = {
                         author: "bot",
-                        text: `✅ ${data.status}`
+                        text: `${data.status}`
                     };
                     return newMessages;
                 });
@@ -136,7 +136,7 @@ Try asking me in natural language!`
         } catch (error) {
             setMessages((m) => [...m, {
                 author: "bot",
-                text: "❌ Something went wrong. Please try again."
+                text: "Something went wrong. Please try again."
             }]);
         }
 
