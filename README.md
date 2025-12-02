@@ -1,62 +1,106 @@
 # AI Email Assistant – Full-Stack Application
 
-This project is an AI-powered email assistant built using **FastAPI**, **Next.js**, **Google OAuth**, **Gmail API**, and **Gemini 2.5 Flash**. The system allows users to authenticate using Google, read their latest Gmail messages, view AI-generated summaries, generate replies using Gemini, delete emails, and interact with the system via a chat-style interface.
+## 📌 Overview  
+This project is a fully functional **AI-powered email assistant** built using **FastAPI** (backend), **Next.js** (frontend), **Gemini AI**, **Google OAuth**, and the **Gmail API**.  
+It allows authenticated users to:
 
-The **frontend is deployed on Vercel**, and the **backend is deployed on Render**.
+- Log in using Google  
+- Read their last 5 Gmail emails  
+- View AI-generated summaries using Gemini  
+- Generate contextual replies using AI  
+- Send the reply to the original sender  
+- Delete emails from their inbox  
+- Use a chat-style interface to control everything  
 
-## 🚀 Features
+**Live URL:**  
+https://constructure-ai-task.vercel.app/
 
-### 🔐 Google OAuth Login
-- Secure login via Google OAuth 2.0
-- Uses Gmail scopes for reading, sending, and deleting emails
-- Session stored using `httponly` cookies
+---
 
-### ✉️ Fetch & Summarize Emails
-- Retrieves last 5 Gmail messages via Gmail API
-- Supports nested MIME body formats
-- AI summarizes each email using Gemini
+## 🧠 Brief Description of the Solution  
+The application combines Google OAuth authentication, Gmail API access, and Gemini-powered AI to automate email workflows. Users interact through a chat interface where natural language commands like *"read emails"*, *"reply 1"*, and *"delete 3"* trigger API calls.  
+AI handles summarization and reply generation, while FastAPI serves secure backend routes to communicate with Google services.
 
-### ✍️ AI Email Reply
-- Generates professional, contextual replies using Gemini
-- Replies are sent to the original sender (not back to the user)
-- Uses Gmail API `messages.send`
+---
 
-### 🗑 Delete Emails
-- Deletes emails directly from Gmail inbox
+## ⚙️ Setup Instructions
 
-### 💬 Chat-Based Interface
-Supported commands:
-```
-read emails
-show last 5
-reply 1
-delete 2
-```
+### 1. 🔧 Backend (FastAPI)
 
-## 🧩 Tech Stack
-
-### Frontend (Vercel)
-- Next.js 14 (App Router)
-- TailwindCSS
-- React
-- Fetch API with cookies (`credentials: include`)
-
-### Backend (Render)
-- FastAPI
-- httpx (async Gmail API calls)
-- Google OAuth 2.0
-- Gmail API
-- Gemini 2.5 Flash (Generative AI)
-- Deployed as a Render Web Service
-
-## 📦 Environment Variables
-
-### Frontend (`.env.local`)
-```
-NEXT_PUBLIC_BACKEND_URL=https://your-backend.onrender.com
+#### **Install dependencies**
+```bash
+pip install -r requirements.txt
 ```
 
-### Backend (`.env` on Render)
+#### **Run locally**
+```bash
+uvicorn main:app --reload
+```
+
+#### **Deploy (Render)**
+- Create a **Web Service**
+- Set the start command:
+```
+uvicorn main:app --host 0.0.0.0 --port $PORT
+```
+- Add environment variables from the list below
+
+---
+
+### 2. 🎨 Frontend (Next.js)
+
+#### **Install packages**
+```bash
+npm install
+```
+
+#### **Run locally**
+```bash
+npm run dev
+```
+
+#### **Deploy (Vercel)**
+- Create a new Vercel project
+- Add environment variables
+- Deploy with automatic build
+
+---
+
+## 🔐 Configuring Google Credentials & OAuth
+
+### Step 1 — Create a Google Cloud Project  
+Visit: https://console.cloud.google.com
+
+### Step 2 — Enable APIs  
+Enable:
+- **Gmail API**
+- **Google People API** (optional)
+- **OAuth Consent Screen** → External
+
+### Step 3 — Create OAuth Client ID  
+Choose **Web Application**  
+Add:
+
+#### Authorized JavaScript origins:
+```
+https://your-frontend.vercel.app
+```
+
+#### Authorized Redirect URIs:
+```
+https://your-backend.onrender.com/auth/google/callback
+```
+
+### Step 4 — Copy credentials  
+Store:
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+
+---
+
+## 🔑 Environment Variables
+
+### Backend (.env)
 ```
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
@@ -65,78 +109,48 @@ FRONTEND_URL=https://your-frontend.vercel.app
 GEMINI_API_KEY=your_gemini_api_key
 ```
 
-## 🔐 Google Cloud Setup
+### Frontend (.env.local)
+```
+NEXT_PUBLIC_BACKEND_URL=https://your-backend.onrender.com
+```
 
-Enable:
+---
+
+## 🧩 Technologies Used
+
+### **Frontend**
+- Next.js 14 (App Router)
+- React
+- TailwindCSS
+- Fetch API with cookies
+
+### **Backend**
+- FastAPI
+- httpx (async Gmail API requests)
+- Google OAuth 2.0
 - Gmail API
-- OAuth Consent Screen
+- python-dotenv
+- Uvicorn (Render runtime)
 
-Scopes required:
-```
-openid
-email
-profile
-https://www.googleapis.com/auth/gmail.readonly
-https://www.googleapis.com/auth/gmail.send
-https://www.googleapis.com/auth/gmail.modify
-```
+### **AI Provider**
+- **Google Gemini 2.5 Flash** for:
+  - Email summarization
+  - Reply generation
 
-### Authorized Redirect URIs
-```
-https://your-backend.onrender.com/auth/google/callback
-```
+---
 
-### Authorized JavaScript Origins
-```
-https://your-frontend.vercel.app
-```
+## ⚠️ Assumptions / Known Limitations
 
-## 🧠 API Endpoints
+- Sessions are stored **in memory** (not suitable for production).
+- Gmail API rate limits may apply.
+- Some HTML-heavy emails may produce imperfect summaries.
+- Reply accuracy depends on Gemini model output.
+- The application requires **third-party cookies enabled** for Google OAuth redirection.
+- Render free tier may cause a cold start delay.
 
-### Authentication
-```
-GET /auth/google/login
-GET /auth/google/callback
-GET /auth/me
-```
+---
 
-### Emails
-```
-GET /emails/last5
-POST /emails/reply
-POST /emails/delete
-```
+## 🎉 Conclusion  
+This project demonstrates seamless integration between OAuth authentication, Gmail API handling, AI-powered text generation, and full-stack deployment.  
+It automates everyday email workflows while keeping the interface simple and conversational.
 
-## 🛠 Running Locally
-
-### Backend
-```
-pip install -r requirements.txt
-uvicorn main:app --reload
-```
-
-### Frontend
-```
-npm install
-npm run dev
-```
-
-## 🌐 Deployment
-
-### Backend (Render)
-Start command:
-```
-uvicorn main:app --host 0.0.0.0 --port $PORT
-```
-
-### Frontend (Vercel)
-- Add `NEXT_PUBLIC_BACKEND_URL`
-- Redeploy after updating `.env.local`
-
-## 📌 Notes
-- Sessions stored in memory
-- Gemini used for summary + reply
-- Reply target parsed using `email.utils.parseaddr`
-
-## 🎉 Conclusion
-This project integrates OAuth, Gmail API, AI generation, and full-stack deployment into a cohesive assistant system.
