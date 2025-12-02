@@ -1,4 +1,4 @@
-'use client';
+'use client'
 import { useEffect, useState, useRef } from "react";
 
 export default function Page() {
@@ -18,7 +18,6 @@ export default function Page() {
         scrollToBottom();
     }, [messages]);
 
-    // Load user session
     useEffect(() => {
         fetch(`${BACKEND_URL}/auth/me`, {
             credentials: "include",
@@ -33,13 +32,7 @@ export default function Page() {
                 setMessages([
                     {
                         author: "bot",
-                        text: `Hi ${data.name}! 👋 I'm your AI email assistant. Here's what I can help you with:
-
-• "read emails" or "show last 5" - View your recent emails with AI summaries
-• "reply 1" - Generate and send an AI response to email #1
-• "delete 2" - Remove email #2 from your inbox
-
-Try asking me in natural language!`
+                        text: `Hey ${data.name}!\n\nI can help you manage your emails. Try these:\n• "read emails" or "last 5" - see recent emails\n• "reply 1" - generate a response\n• "delete 2" - remove an email\n\nJust type naturally and I'll figure it out.`
                     },
                 ]);
             });
@@ -54,25 +47,17 @@ Try asking me in natural language!`
         setLoading(true);
 
         try {
-            // READ EMAILS
-            if (
-                userText.toLowerCase().includes("last 5") ||
-                userText.toLowerCase().includes("read emails") ||
-                userText.toLowerCase().includes("show emails")
-            ) {
-                setMessages((m) => [...m, { author: "bot", text: "📧 Fetching your latest emails..." }]);
-
+            if (userText.toLowerCase().includes("last 5") || userText.toLowerCase().includes("read emails") || userText.toLowerCase().includes("show emails")) {
+                setMessages((m) => [...m, { author: "bot", text: "Getting your emails..." }]);
                 const res = await fetch(`${BACKEND_URL}/emails/last5`, { credentials: "include" });
                 const data = await res.json();
 
-                let formatted = "Here are your last 5 emails:\n\n";
-
+                let formatted = "Here's what you have:\n\n";
                 if (Array.isArray(data)) {
                     data.forEach((email, idx) => {
-                        formatted += `📩 Email ${idx + 1}\n`;
-                        formatted += `From: ${email.from || "Unknown"}\n`;
-                        formatted += `Subject: ${email.subject || "No subject"}\n`;
-                        formatted += `Summary: ${email.summary || "No summary available"}\n\n`;
+                        formatted += `${idx + 1}. ${email.sender || 'Unknown'}\n`;
+                        formatted += `   ${email.subject || 'No subject'}\n`;
+                        formatted += `   ${email.summary || 'No summary'}\n\n`;
                     });
                 } else {
                     formatted = JSON.stringify(data, null, 2);
@@ -83,15 +68,13 @@ Try asking me in natural language!`
                     newMessages[newMessages.length - 1] = { author: "bot", text: formatted };
                     return newMessages;
                 });
-
                 setLoading(false);
                 return;
             }
 
-            // REPLY EMAIL
             if (userText.toLowerCase().startsWith("reply")) {
                 const index = parseInt(userText.split(" ")[1]);
-                setMessages((m) => [...m, { author: "bot", text: `✍️ Generating reply for email #${index}...` }]);
+                setMessages((m) => [...m, { author: "bot", text: `Writing a reply for #${index}...` }]);
 
                 const res = await fetch(`${BACKEND_URL}/emails/reply`, {
                     method: "POST",
@@ -99,26 +82,23 @@ Try asking me in natural language!`
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ index }),
                 });
-
                 const data = await res.json();
 
                 setMessages((m) => {
                     const newMessages = [...m];
                     newMessages[newMessages.length - 1] = {
                         author: "bot",
-                        text: `✅ Reply generated:\n\n${data.reply}`
+                        text: `Here's a draft:\n\n${data.reply}\n\nLet me know if you want to send it.`
                     };
                     return newMessages;
                 });
-
                 setLoading(false);
                 return;
             }
 
-            // DELETE EMAIL
             if (userText.toLowerCase().startsWith("delete")) {
                 const index = parseInt(userText.split(" ")[1]);
-                setMessages((m) => [...m, { author: "bot", text: `🗑️ Deleting email #${index}...` }]);
+                setMessages((m) => [...m, { author: "bot", text: `Deleting email #${index}...` }]);
 
                 const res = await fetch(`${BACKEND_URL}/emails/delete`, {
                     method: "POST",
@@ -126,14 +106,13 @@ Try asking me in natural language!`
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ index }),
                 });
-
                 const data = await res.json();
 
                 setMessages((m) => {
                     const newMessages = [...m];
                     newMessages[newMessages.length - 1] = {
                         author: "bot",
-                        text: `✅ ${data.status}`
+                        text: data.status
                     };
                     return newMessages;
                 });
@@ -141,30 +120,22 @@ Try asking me in natural language!`
                 return;
             }
 
-            // Unknown command
-            setMessages((m) => [
-                ...m,
-                {
-                    author: "bot",
-                    text: "❓ I didn't understand that command. Try:\n• 'read emails'\n• 'reply 1'\n• 'delete 2'"
-                },
-            ]);
-
+            setMessages((m) => [...m, {
+                author: "bot",
+                text: "Not sure what you mean. Try 'read emails', 'reply 1', or 'delete 2'"
+            }]);
         } catch (error) {
-            setMessages((m) => [
-                ...m,
-                {
-                    author: "bot",
-                    text: "❌ Something went wrong. Please try again."
-                },
-            ]);
+            setMessages((m) => [...m, {
+                author: "bot",
+                text: "Something went wrong. Try again?"
+            }]);
         }
 
         setLoading(false);
     };
 
     const handleKeyPress = (e) => {
-        if (e.key === "Enter" && !e.shiftKey) {
+        if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             handleSend();
         }
@@ -172,115 +143,86 @@ Try asking me in natural language!`
 
     if (!user) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-                <div className="text-center">
-                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
-                    <p className="text-gray-600">Loading your assistant...</p>
-                </div>
+            <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+                <div className="text-gray-500">Loading...</div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-            {/* Header */}
-            <div className="bg-white shadow-sm border-b border-gray-200">
-                <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center">
-                            <svg
-                                className="w-6 h-6 text-white"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                                />
-                            </svg>
-                        </div>
-                        <div>
-                            <h1 className="text-lg font-semibold text-gray-900">Email Assistant</h1>
-                            <p className="text-sm text-gray-500">Welcome, {user.name}</p>
-                        </div>
-                    </div>
-
-                    <button
-                        onClick={() => {
-                            fetch(`${BACKEND_URL}/auth/logout`, {
-                                method: "POST",
-                                credentials: "include",
-                            }).then(() => {
-                                window.location.href = "/";
-                            });
-                        }}
-                        className="text-sm text-gray-600 hover:text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
-                    >
-                        Logout
-                    </button>
+        <div className="min-h-screen bg-gray-950 flex flex-col">
+            {/* Simple header */}
+            <div className="border-b border-gray-800 px-6 py-4 flex items-center justify-between">
+                <div>
+                    <h1 className="text-xl font-semibold text-white">Email Assistant</h1>
+                    <p className="text-sm text-gray-400">{user.name}</p>
                 </div>
+                <button
+                    onClick={() => window.location.href = `${BACKEND_URL}/auth/logout`}
+                    className="text-sm text-gray-400 hover:text-white transition-colors"
+                >
+                    Logout
+                </button>
             </div>
 
-            {/* Chat Container */}
-            <div className="max-w-5xl mx-auto p-4 h-[calc(100vh-80px)] flex flex-col">
-                <div className="bg-white rounded-2xl shadow-xl flex-1 flex flex-col overflow-hidden">
-
-                    {/* Messages */}
-                    <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                        {messages.map((msg, i) => (
-                            <div key={i} className={`flex ${msg.author === "user" ? "justify-end" : "justify-start"}`}>
-                                <div
-                                    className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                                        msg.author === "user"
-                                            ? "bg-indigo-600 text-white"
-                                            : "bg-gray-100 text-gray-900"
-                                    }`}
-                                >
-                                    <p className="text-sm whitespace-pre-wrap break-words">{msg.text}</p>
+            {/* Chat area */}
+            <div className="flex-1 overflow-hidden flex flex-col max-w-4xl w-full mx-auto">
+                <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+                    {messages.map((msg, i) => (
+                        <div key={i} className="flex gap-3">
+                            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                                msg.author === "user"
+                                    ? "bg-gray-100 text-gray-900"
+                                    : "bg-gray-800 text-gray-300"
+                            }`}>
+                                {msg.author === "user" ? "Y" : "A"}
+                            </div>
+                            <div className="flex-1 pt-1">
+                                <div className="text-sm font-medium text-gray-300 mb-1">
+                                    {msg.author === "user" ? "You" : "Assistant"}
+                                </div>
+                                <div className="text-gray-400 whitespace-pre-wrap break-words leading-relaxed">
+                                    {msg.text}
                                 </div>
                             </div>
-                        ))}
-
-                        {loading && (
-                            <div className="flex justify-start">
-                                <div className="bg-gray-100 rounded-2xl px-4 py-3">
-                                    <div className="flex space-x-2">
-                                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
-                                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.4s" }}></div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        <div ref={messagesEndRef} />
-                    </div>
-
-                    {/* Input Area */}
-                    <div className="border-t border-gray-200 p-4 bg-gray-50">
-                        <div className="flex space-x-3">
-                            <input
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                onKeyPress={handleKeyPress}
-                                placeholder="Type a command or ask me anything..."
-                                disabled={loading}
-                                className="flex-1 px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100"
-                            />
-                            <button
-                                onClick={handleSend}
-                                disabled={loading || !input.trim()}
-                                className="bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 disabled:bg-gray-300 font-medium"
-                            >
-                                Send
-                            </button>
                         </div>
-                        <p className="text-xs text-gray-500 mt-2 text-center">
-                            Try: "read emails" • "reply 1" • "delete 2"
-                        </p>
+                    ))}
+                    {loading && (
+                        <div className="flex gap-3">
+                            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-sm font-medium text-gray-300">
+                                A
+                            </div>
+                            <div className="flex-1 pt-1">
+                                <div className="text-sm font-medium text-gray-300 mb-1">Assistant</div>
+                                <div className="flex gap-1">
+                                    <span className="w-2 h-2 bg-gray-600 rounded-full animate-bounce"></span>
+                                    <span className="w-2 h-2 bg-gray-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></span>
+                                    <span className="w-2 h-2 bg-gray-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    <div ref={messagesEndRef} />
+                </div>
+
+                {/* Input */}
+                <div className="border-t border-gray-800 px-6 py-4">
+                    <div className="flex gap-3">
+                        <input
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            onKeyPress={handleKeyPress}
+                            placeholder="Type a command..."
+                            disabled={loading}
+                            className="flex-1 px-4 py-3 bg-gray-900 border border-gray-800 text-white placeholder-gray-500 rounded-lg focus:outline-none focus:border-gray-700 disabled:bg-gray-900 disabled:opacity-50"
+                        />
+                        <button
+                            onClick={handleSend}
+                            disabled={loading || !input.trim()}
+                            className="bg-gray-100 text-gray-900 px-6 py-3 rounded-lg hover:bg-white disabled:bg-gray-800 disabled:text-gray-600 transition-colors font-medium"
+                        >
+                            Send
+                        </button>
                     </div>
                 </div>
             </div>

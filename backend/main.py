@@ -4,6 +4,8 @@ import base64
 import httpx
 from email.mime.text import MIMEText
 from email.utils import parseaddr
+from typing import Optional
+
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request, Response, Depends, HTTPException
 from fastapi.responses import RedirectResponse
@@ -31,9 +33,18 @@ SESSIONS = {}
 # ---------------- APP ----------------
 app = FastAPI()
 
+# IMPORTANT: for cookies with credentials, don't use "*"
+allowed_origins = []
+if FRONTEND_URL:
+    # FRONTEND_URL like "http://localhost:3000" or "https://your-app.vercel.app"
+    # if you accidentally included a path, browser will still send Origin without path
+    allowed_origins = [FRONTEND_URL]
+else:
+    allowed_origins = ["http://localhost:3000"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -62,6 +73,7 @@ def decode_body(body):
     return base64.urlsafe_b64decode(data.encode("utf-8")).decode(
         "utf-8", errors="ignore"
     )
+
 
 def extract_headers(payload):
     # First check root headers
@@ -140,7 +152,9 @@ async def gemini_summarize(text: str) -> str:
         return "Summary unavailable."
 
 
-async def gemini_reply_email(subject: str, body: str, sender: str | None = None) -> str:
+async def gemini_reply_email(
+    subject: str, body: str, sender: Optional[str] = None
+) -> str:
     if not body.strip():
         body = "(The original email body was empty or not readable.)"
     try:
@@ -164,6 +178,7 @@ Now write ONLY the reply email body, nothing else:
     except Exception as e:
         print("Gemini reply error:", e)
         return "AI reply unavailable."
+
 
 # ---------------- AUTH ----------------
 @app.get("/auth/google/login")
@@ -220,7 +235,7 @@ async def google_callback(code: str, response: Response):
         "refresh_token": refresh_token,
     }
 
-    # NOTE: keep your path same as your Next.js dashboard route
+    # Keep path same as your Next.js dashboard route
     resp = RedirectResponse(f"{FRONTEND_URL}/pages/dashboard")
     resp.set_cookie("session_id", session_id, httponly=True, samesite="Lax")
 
@@ -237,6 +252,7 @@ def get_session(request: Request):
 @app.get("/auth/me")
 def auth_me(session=Depends(get_session)):
     return {"email": session["email"], "name": session["name"]}
+
 
 # ---------------- EMAIL ROUTES ----------------
 @app.get("/emails/last5")
@@ -286,7 +302,7 @@ async def last_5(session=Depends(get_session)):
                 {
                     "index": idx,
                     "id": mid,
-                    "sender": sender_header,  # <-- for UI
+                    "sender": sender_header,  # <-- your frontend uses email.sender
                     "subject": subject,
                     "summary": summary,
                 }
@@ -297,7 +313,7 @@ async def last_5(session=Depends(get_session)):
                 {
                     "id": mid,
                     "from": sender_header,
-                    "from_email": sender_email,
+                    "from_email": sender_email,  # parsed email only
                     "subject": subject,
                     "body": body,
                 }
